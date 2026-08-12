@@ -1005,10 +1005,7 @@ with tab_results:
                     st.success(f"Оптимизация успешна! Итоговая ценность наград: **{res['total_score']:.2f}**")
                     for m_res in res["missions"]:
                         if not m_res["assigned_chars"]:
-                            st.warning(
-                                f"**Миссия #{
-                                    m_res['id']}**: ПРОПУЩЕНА (недостаточно подпадающих персонажей)"
-                            )
+                            st.warning(f"**Миссия #{m_res['id']}**: ПРОПУЩЕНА (недостаточно подпадающих персонажей)")
                             continue
 
                         status_str = (
@@ -1018,16 +1015,11 @@ with tab_results:
                         )
 
                         with st.container():
-                            st.markdown(f"#### Миссия #{
-                                m_res['id']} — {status_str}")
-                            st.write(
-                                f"**Назначено ({len(m_res['assigned_chars'])}/{m_res['slots']}):** {', '.join(m_res['assigned_chars'])}"
-                            )
+                            st.markdown(f"#### Миссия #{m_res['id']} — {status_str}")
+                            st.write(f"**Назначено ({len(m_res['assigned_chars'])}/{m_res['slots']}):** {', '.join(m_res['assigned_chars'])}")
 
                             if m_res["reqs"] and not m_res["is_bonus"]:
-                                st.caption(f"⚠️ Бонусы не собраны. Требовалось: {
-                                    ', '.join(
-                                        m_res['reqs'])}")
+                                st.caption(f"⚠️ Бонусы не собраны. Требовалось: {', '.join(m_res['reqs'])}")
                             st.divider()
                 else:
                     st.error(
