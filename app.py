@@ -1002,9 +1002,7 @@ with tab_results:
                 )
 
                 if res["status"] == "Optimal":
-                    st.success(f"Оптимизация успешна! Итоговая ценность наград: **{
-                        res['total_score']:.2f}**")
-
+                    st.success(f"Оптимизация успешна! Итоговая ценность наград: **{res['total_score']:.2f}**")
                     for m_res in res["missions"]:
                         if not m_res["assigned_chars"]:
                             st.warning(
