@@ -748,6 +748,14 @@ with st.sidebar:
             "Урон: Силовой",
             "Дальний бой",
         ],
+        "Trajann": [
+            "Сокрушающий удар",
+            "Боевые ката",
+            "Живучесть",
+            "Только ближний бой",
+            "Урон: Болтер",
+            "Урон: Проникающий",
+        ],
         "Tson'ji": ["Только ближний бой"],
         "Tyrant Guard": [
             "Большая цель",
@@ -959,7 +967,8 @@ with tab_missions:
                 key=f"req_ms_{i}",
             )
 
-            # Если выбрано несколько одинаковых тегов (например, 2 x SpaceWolves), выводим счетчики количества
+            # Если выбрано несколько одинаковых тегов (например, 2 x
+            # SpaceWolves), выводим счетчики количества
             final_req_list = []
             if chosen:
                 q_cols = st.columns(min(len(chosen), 4))
@@ -970,11 +979,11 @@ with tab_missions:
                         min_value=1,
                         max_value=5,
                         value=default_qty,
-                        key=f"qty_{i}_{req_item}"
+                        key=f"qty_{i}_{req_item}",
                     )
                     final_req_list.extend([req_item] * qty)
 
-            m['bonus_requirements'] = final_req_list
+            m["bonus_requirements"] = final_req_list
     # Удаляем отмеченные миссии
     if missions_to_delete:
         for index in sorted(missions_to_delete, reverse=True):
