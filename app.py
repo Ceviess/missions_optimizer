@@ -22,17 +22,63 @@ if "missions" not in st.session_state:
             "grandAlliance": ["Imperial"],
             "min_rank": 9,
             "min_progression_index": 9,
-            "bonus_requirements": "Зверебой, Предсмертное возмездие, Страшилище, SpaceWolves, SpaceWolves",
+            "bonus_requirements": "",
             "base_crusade": 9,
             "base_xp": 720,
-            "bonus_power": 8,
+            "bonus_power": 0,
             "bonus_crusade": 15,
             "bonus_intel": 0,
+            "bonus_bombs": 0,
         }
     ]
 
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+
+MISSION_LEVELS = {
+    "Пустой": {
+        "min_rank": 0,
+        "min_progression_index": 0,
+        "base_xp": 20,
+        "base_crusade": 3,
+        "bonus_crusade": 3,
+    },
+    "Железо": {
+        "min_rank": 3,
+        "min_progression_index": 3,
+        "base_xp": 60,
+        "base_crusade": 4,
+        "bonus_crusade": 8,
+    },
+    "Бронза": {
+        "min_rank": 6,
+        "min_progression_index": 6,
+        "base_xp": 200,
+        "base_crusade": 6,
+        "bonus_crusade": 12,
+    },
+    "Серебро": {
+        "min_rank": 9,
+        "min_progression_index": 9,
+        "base_xp": 720,
+        "base_crusade": 9,
+        "bonus_crusade": 15,
+    },
+}
+
+
+def apply_mission_level(mission_index):
+    """Заполняет параметры миссии по выбранному уровню."""
+    level = st.session_state[f"level_{mission_index}"]
+    level_config = MISSION_LEVELS[level]
+
+    mission = st.session_state.missions[mission_index]
+
+    for field, value in level_config.items():
+        mission[field] = value
+
+        # Синхронизируем значения виджетов с session_state
+        st.session_state[f"{field}_{mission_index}"] = value
 
 
 def get_all_possible_requirements(traits_dict, units_df=None, missions=None):
@@ -853,12 +899,12 @@ with st.sidebar:
     st.divider()
     st.header("⚖️ Веса Наград")
     weights = {
-        "base_xp": st.number_input("Вес: Base XP", value=1.0, step=0.1),
-        "base_crusade": st.number_input("Вес: Base Crusade", value=10.0, step=0.5),
-        "bonus_crusade": st.number_input("Вес: Bonus Crusade", value=10.0, step=0.5),
-        "bonus_power": st.number_input("Вес: Bonus Power", value=1.0, step=0.1),
-        "bonus_intel": st.number_input("Вес: Bonus Intel", value=5.0, step=0.5),
-        "bonus_bombs": st.number_input("Вес: Bonus Bombs", value=1.0, step=0.1),
+        "base_xp": st.number_input("Вес: Base XP", value=5.0, step=0.1),
+        "base_crusade": st.number_input("Вес: Base Crusade", value=5.0, step=1.0),
+        "bonus_crusade": st.number_input("Вес: Bonus Crusade", value=2.0, step=1.0),
+        "bonus_power": st.number_input("Вес: Bonus Power", value=1.0, step=1.0),
+        "bonus_intel": st.number_input("Вес: Bonus Intel", value=1.0, step=1.0),
+        "bonus_bombs": st.number_input("Вес: Bonus Bombs", value=1.0, step=1.0),
     }
 
 all_possible_reqs = get_all_possible_requirements(
@@ -882,16 +928,18 @@ with tab_missions:
             st.session_state.missions.append(
                 {
                     "id": new_id,
+                    "level": "Пустой",
                     "slots": 4,
                     "grandAlliance": ["Imperial"],
                     "min_rank": 0,
                     "min_progression_index": 0,
                     "bonus_requirements": "",
-                    "base_crusade": 0,
-                    "base_xp": 0,
+                    "base_crusade": 3,
+                    "base_xp": 20,
                     "bonus_power": 0,
-                    "bonus_crusade": 0,
+                    "bonus_crusade": 3,
                     "bonus_intel": 0,
+                    "bonus_bombs": 0,
                 }
             )
             st.rerun()
@@ -901,6 +949,22 @@ with tab_missions:
 
     for i, m in enumerate(st.session_state.missions):
         with st.expander(f"Миссия ID #{m['id']}", expanded=True):
+            level_options = list(MISSION_LEVELS.keys())
+
+            current_level = m.get("level", "Пустой")
+
+            if current_level not in level_options:
+                current_level = "Пустой"
+                m["level"] = current_level
+
+            st.selectbox(
+                "Уровень миссии",
+                options=level_options,
+                index=level_options.index(current_level),
+                key=f"level_{i}",
+                on_change=apply_mission_level,
+                args=(i,),
+            )
             col1, col2, col3 = st.columns([2, 2, 1])
 
             with col1:
@@ -921,25 +985,8 @@ with tab_missions:
                     ),
                     key=f"ga_{i}",
                 )
-                m["min_rank"] = st.number_input(
-                    "Мин. Rank", value=m["min_rank"], key=f"rank_{i}"
-                )
-                m["min_progression_index"] = st.number_input(
-                    "Мин. Progression",
-                    value=m["min_progression_index"],
-                    key=f"prog_{i}",
-                )
 
             with col2:
-                m["base_xp"] = st.number_input(
-                    "Base XP", value=m["base_xp"], key=f"bxp_{i}"
-                )
-                m["base_crusade"] = st.number_input(
-                    "Base Crusade", value=m["base_crusade"], key=f"bcr_{i}"
-                )
-                m["bonus_crusade"] = st.number_input(
-                    "Bonus Crusade", value=m["bonus_crusade"], key=f"bncr_{i}"
-                )
                 m["bonus_power"] = st.number_input(
                     "Bonus Power", value=m["bonus_power"], key=f"bnpow_{i}"
                 )
