@@ -934,7 +934,7 @@ with tab_missions:
             st.session_state.missions.append(
                 {
                     "id": new_id,
-                    "level": "Пустой",
+                    "level": "Обычная",
                     "slots": 4,
                     "grandAlliance": ["Imperial"],
                     "min_rank": 0,
@@ -957,10 +957,10 @@ with tab_missions:
         with st.expander(f"Миссия ID #{m['id']}", expanded=True):
             level_options = list(MISSION_LEVELS.keys())
 
-            current_level = m.get("level", "Пустой")
+            current_level = m.get("level", "Обычная")
 
             if current_level not in level_options:
-                current_level = "Пустой"
+                current_level = "Обычная"
                 m["level"] = current_level
 
             st.selectbox(
