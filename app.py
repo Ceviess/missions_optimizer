@@ -15,49 +15,34 @@ if "units_df" not in st.session_state:
 
 if "missions" not in st.session_state:
     # Загружаем дефолтные миссии из вашего скрипта
-    st.session_state.missions = [
-        {
-            "id": 0,
-            "slots": 4,
-            "grandAlliance": ["Imperial"],
-            "min_rank": 9,
-            "min_progression_index": 9,
-            "bonus_requirements": "",
-            "base_crusade": 9,
-            "base_xp": 720,
-            "bonus_power": 0,
-            "bonus_crusade": 15,
-            "bonus_intel": 0,
-            "bonus_bombs": 0,
-        }
-    ]
+    st.session_state.missions = []
 
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
 MISSION_LEVELS = {
-    "Пустой": {
+    "Обычная": {
         "min_rank": 0,
         "min_progression_index": 0,
         "base_xp": 20,
         "base_crusade": 3,
         "bonus_crusade": 3,
     },
-    "Железо": {
+    "Необычная": {
         "min_rank": 3,
         "min_progression_index": 3,
         "base_xp": 60,
         "base_crusade": 4,
         "bonus_crusade": 8,
     },
-    "Бронза": {
+    "Редкая": {
         "min_rank": 6,
         "min_progression_index": 6,
         "base_xp": 200,
         "base_crusade": 6,
         "bonus_crusade": 12,
     },
-    "Серебро": {
+    "Эпическая": {
         "min_rank": 9,
         "min_progression_index": 9,
         "base_xp": 720,
@@ -104,6 +89,7 @@ def get_all_possible_requirements(traits_dict, units_df=None, missions=None):
         "Прикрывающий огонь",
         "Дальний бой",
         "Ясновидец",
+        "Синапс"
     }
 
     if traits_dict:
@@ -658,6 +644,12 @@ with st.sidebar:
             "Урон: Цепь",
             "Только ближний бой",
         ],
+        "Nubari": [
+            "Тяжелое оружие",
+            "Тип Х гравис",
+            "Урон: Мельта",
+            "Дальний бой",
+        ],
         "Pestillian": [
             "Зараза Нургла",
             "Мерзостный взрыв",
@@ -695,7 +687,6 @@ with st.sidebar:
             "Урон: Огонь",
             "Урон: Тяжелые боеприпасы",
             "Урон: Силовой",
-            "Урон: Психический",
             "Дальний бой",
         ],
         "Shiron": [
@@ -795,6 +786,14 @@ with st.sidebar:
             "Урон: Физический",
             "Урон: Психический",
             "Дальний бой",
+        ],
+        "Titus": [
+            "Зверебой",
+            "Предсмертное возмездие",
+            "Урон: Цепь",
+            "Урон: Болтер",
+            "Только ближний бой",
+
         ],
         "Tjark": [
             "Проникновение",
