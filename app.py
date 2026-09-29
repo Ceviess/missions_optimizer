@@ -1,7 +1,7 @@
 from collections import Counter
 import streamlit as st
 
-from constants import TRAITS_DICT
+from constants import TRAITS_DICT, RARITY_REQUIREMENTS, MISSION_REWARDS, BONUS_TYPES
 from utils import get_all_possible_requirements, fetch_player_data, optimize_missions
 
 st.set_page_config(
@@ -24,46 +24,59 @@ if "weights" not in st.session_state:
         "bonus_bombs": 1,
     }
 
-MISSION_LEVELS = {
-    "Обычная": {
-        "min_rank": 0,
-        "min_progression_index": 0,
-        "base_xp": 20,
-        "base_crusade": 3,
-        "bonus_crusade": 3,
-    },
-    "Необычная": {
-        "min_rank": 3,
-        "min_progression_index": 3,
-        "base_xp": 60,
-        "base_crusade": 4,
-        "bonus_crusade": 8,
-    },
-    "Редкая": {
-        "min_rank": 6,
-        "min_progression_index": 6,
-        "base_xp": 200,
-        "base_crusade": 6,
-        "bonus_crusade": 12,
-    },
-    "Эпическая": {
-        "min_rank": 9,
-        "min_progression_index": 9,
-        "base_xp": 720,
-        "base_crusade": 9,
-        "bonus_crusade": 15,
-    },
-}
+if "global_duration" not in st.session_state:
+    st.session_state.global_duration = "8 ч"
+
 
 def apply_mission_level(mission_index):
-    """Заполняет параметры миссии по выбранному уровню."""
-    level = st.session_state[f"level_{mission_index}"]
-    level_config = MISSION_LEVELS[level]
+    """Заполняет параметры миссии с учетом 1 активного типа бонусной награды."""
     mission = st.session_state.missions[mission_index]
 
-    for field, value in level_config.items():
+    duration = st.session_state.global_duration
+    level = st.session_state.get(
+        f"level_{mission_index}", mission.get("level", "Обычная")
+    )
+    bonus_type = st.session_state.get(
+        f"bonus_type_{mission_index}", mission.get("bonus_type", "Без бонуса")
+    )
+
+    mission["level"] = level
+    mission["bonus_type"] = bonus_type
+
+    # Применяем требования по рангу
+    rarity_config = RARITY_REQUIREMENTS.get(level, {})
+    for field, value in rarity_config.items():
         mission[field] = value
-        st.session_state[f"{field}_{mission_index}"] = value
+
+    # Базовые награды
+    rewards_table = MISSION_REWARDS.get(duration, {}).get(level, {})
+    mission["base_xp"] = rewards_table.get("base_xp", 0)
+    mission["base_crusade"] = rewards_table.get("base_crusade", 0)
+    mission["bonus_crusade"] = rewards_table.get("bonus_crusade", 0)
+
+    # По умолчанию все 3 бонусных ресурса равны 0
+    mission["bonus_power"] = 0
+    mission["bonus_intel"] = 0
+    mission["bonus_bombs"] = 0
+
+    # Активируем только один выбранный бонус из таблицы
+    active_field = BONUS_TYPES.get(bonus_type)
+    if active_field and active_field in rewards_table:
+        mission[active_field] = rewards_table[active_field]
+
+
+def update_all_missions_duration():
+    """Пересчитывает параметры всех миссий при изменении глобальной продолжительности."""
+    duration = st.session_state.global_duration
+    available_levels = list(MISSION_REWARDS[duration].keys())
+
+    for i, m in enumerate(st.session_state.missions):
+        # Если выбранная ранее редкость недоступна для новой длительности, сбрасываем на первую доступную
+        if m["level"] not in available_levels:
+            m["level"] = available_levels[0]
+            st.session_state[f"level_{i}"] = available_levels[0]
+
+        apply_mission_level(i)
 
 # --- ОСНОВНОЙ ИНТЕРФЕЙС ---
 
@@ -168,31 +181,56 @@ with tab2:
 with tab3:
     st.header("Шаг 3: Конфигурация активных миссий")
     st.info(
-        "📌 **Что нужно сделать:** Добавьте операции"
-        "Для каждой операции выберите её уровень редкости, количество слотов, альянс и бонусы."
+        "📌 **Что нужно сделать:** Выберите продолжительность операций, "
+        "добавьте нужные операции и укажите их уровень сложности (редкость) и требования к составу."
     )
-
     all_possible_reqs = get_all_possible_requirements(
         TRAITS_DICT, st.session_state.units_df, st.session_state.missions
     )
 
-    if st.button("➕ Добавить миссию"):
+    # --- ГЛОБАЛЬНЫЙ ВЫБОР ДЛИТЕЛЬНОСТИ ---
+    st.selectbox(
+        "⏱️ **Продолжительность всех миссий:**",
+        options=list(MISSION_REWARDS.keys()),
+        index=list(MISSION_REWARDS.keys()).index(
+            st.session_state.global_duration
+        ),
+        key="global_duration",
+        on_change=update_all_missions_duration,
+    )
+
+    st.divider()
+
+    # --- ДОБАВЛЕНИЕ НОВОЙ МИССИИ ---
+    if st.button("➕ Добавить операцию"):
         new_id = (
-            max([m["id"] for m in st.session_state.missions], default=-1) + 1
+                max([m["id"] for m in st.session_state.missions], default=-1) + 1
         )
+
+        available_levels = list(
+            MISSION_REWARDS[st.session_state.global_duration].keys()
+        )
+        default_level = available_levels[0]
+
+        default_rewards = MISSION_REWARDS[
+            st.session_state.global_duration
+        ][default_level]
+        default_reqs = RARITY_REQUIREMENTS[default_level]
+
         st.session_state.missions.append(
             {
                 "id": new_id,
-                "level": "Обычная",
+                "level": default_level,
+                "bonus_type": "Без бонуса",
                 "slots": 4,
                 "grandAlliance": ["Imperial"],
-                "min_rank": 0,
-                "min_progression_index": 0,
+                "min_rank": default_reqs["min_rank"],
+                "min_progression_index": default_reqs["min_progression_index"],
                 "bonus_requirements": "",
-                "base_crusade": 3,
-                "base_xp": 20,
+                "base_crusade": default_rewards["base_crusade"],
+                "base_xp": default_rewards["base_xp"],
+                "bonus_crusade": default_rewards["bonus_crusade"],
                 "bonus_power": 0,
-                "bonus_crusade": 3,
                 "bonus_intel": 0,
                 "bonus_bombs": 0,
             }
@@ -201,23 +239,29 @@ with tab3:
 
     missions_to_delete = []
 
+    # --- СПИСОК МИССИЙ ---
     for i, m in enumerate(st.session_state.missions):
-        with st.expander(f"Миссия ID #{m['id']}", expanded=True):
-            level_options = list(MISSION_LEVELS.keys())
-            current_level = m.get("level", "Обычная")
+        with st.expander(f"Миссия ID #{m['id']+1}", expanded=True):
+            # Доступные варианты редкости зависят от выбранной глобальной длительности
+            available_levels = list(
+                MISSION_REWARDS[st.session_state.global_duration].keys()
+            )
 
-            if current_level not in level_options:
-                current_level = "Обычная"
+            current_level = m.get("level", available_levels[0])
+            if current_level not in available_levels:
+                current_level = available_levels[0]
                 m["level"] = current_level
 
+            # Выбор редкости конкретной миссии
             st.selectbox(
-                "Редкость миссии",
-                options=level_options,
-                index=level_options.index(current_level),
+                "Уровень операции (редкость)",
+                options=available_levels,
+                index=available_levels.index(current_level),
                 key=f"level_{i}",
                 on_change=apply_mission_level,
                 args=(i,),
             )
+
             col1, col2, col3 = st.columns([2, 2, 1])
 
             with col1:
@@ -240,19 +284,31 @@ with tab3:
                 )
 
             with col2:
-                m["bonus_power"] = st.number_input(
-                    "Бонус силы", value=m["bonus_power"], key=f"bnpow_{i}"
+                bonus_options = list(BONUS_TYPES.keys())
+                current_bonus_type = m.get("bonus_type", "Без бонуса")
+
+                if current_bonus_type not in bonus_options:
+                    current_bonus_type = "Без бонуса"
+
+                # Селектбокс выбора 1 возможного бонуса
+                st.selectbox(
+                    "Тип бонусной награды",
+                    options=bonus_options,
+                    index=bonus_options.index(current_bonus_type),
+                    key=f"bonus_type_{i}",
+                    on_change=apply_mission_level,
+                    args=(i,),
                 )
-                m["bonus_intel"] = st.number_input(
-                    "Бонус разведданные",
-                    value=m.get("bonus_intel", 0),
-                    key=f"bnint_{i}",
+
+                # Вывод активного значения
+                active_field = BONUS_TYPES.get(
+                    st.session_state.get(f"bonus_type_{i}", current_bonus_type)
                 )
-                m["bonus_bombs"] = st.number_input(
-                    "Бонус бомбы",
-                    value=m.get("bonus_bombs", 0),
-                    key=f"bnbom_{i}",
-                )
+                if active_field:
+                    val = m.get(active_field, 0)
+                    st.caption(f"Значение бонуса из таблицы: **+{val}**")
+                else:
+                    st.caption("Дополнительный бонус отключен (0)")
 
             with col3:
                 st.write("")
@@ -260,6 +316,7 @@ with tab3:
                 if st.button("❌ Удалить", key=f"del_{i}"):
                     missions_to_delete.append(i)
 
+            # Выбор тегов бонусных требований
             st.markdown("**Бонусные требования:**")
             req_list = (
                 m["bonus_requirements"]

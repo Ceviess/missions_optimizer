@@ -616,3 +616,45 @@ TRAITS_DICT = {
     ],
     "Z'Kar": [],
 }
+
+RARITY_REQUIREMENTS = {
+    "Обычная": {"min_rank": 0, "min_progression_index": 0},
+    "Необычная": {"min_rank": 3, "min_progression_index": 3},
+    "Редкая": {"min_rank": 6, "min_progression_index": 6},
+    "Эпическая": {"min_rank": 9, "min_progression_index": 9},
+    "Легендарная": {"min_rank": 12, "min_progression_index": 12},
+    "Мифическая": {"min_rank": 15, "min_progression_index": 15},
+}
+
+MISSION_REWARDS = {
+    "10 ч": {
+        "Обычная": {"base_xp": 25, "base_crusade": 4, "bonus_crusade": 5, "bonus_intel": 28, "bonus_power": 4, "bonus_bombs": 4},
+        "Необычная": {"base_xp": 75, "base_crusade": 6, "bonus_crusade": 10, "bonus_intel": 35, "bonus_power": 5, "bonus_bombs": 5},
+        "Редкая": {"base_xp": 250, "base_crusade": 9, "bonus_crusade": 15, "bonus_intel": 49, "bonus_power": 7, "bonus_bombs": 7},
+        "Эпическая": {"base_xp": 900, "base_crusade": 12, "bonus_crusade": 20, "bonus_intel": 70, "bonus_power": 10, "bonus_bombs": 10},
+        "Легендарная": {"base_xp": 3500, "base_crusade": 15, "bonus_crusade": 25, "bonus_intel": 84, "bonus_power": 12, "bonus_bombs": 12},
+        "Мифическая": {"base_xp": 12000, "base_crusade": 18, "bonus_crusade": 32, "bonus_intel": 105, "bonus_power": 15, "bonus_bombs": 15},
+    },
+    "8 ч": {
+        "Обычная": {"base_xp": 20, "base_crusade": 3, "bonus_crusade": 3, "bonus_intel": 21, "bonus_power": 3, "bonus_bombs": 3},
+        "Необычная": {"base_xp": 60, "base_crusade": 4, "bonus_crusade": 8, "bonus_intel": 28, "bonus_power": 4, "bonus_bombs": 4},
+        "Редкая": {"base_xp": 200, "base_crusade": 6, "bonus_crusade": 12, "bonus_intel": 35, "bonus_power": 5, "bonus_bombs": 5},
+        "Эпическая": {"base_xp": 720, "base_crusade": 9, "bonus_crusade": 15, "bonus_intel": 56, "bonus_power": 8, "bonus_bombs": 8},
+    },
+    "6 ч": {
+        "Обычная": {"base_xp": 15, "base_crusade": 2, "bonus_crusade": 2, "bonus_intel": 14, "bonus_power": 2, "bonus_bombs": 2},
+        "Необычная": {"base_xp": 45, "base_crusade": 3, "bonus_crusade": 5, "bonus_intel": 21, "bonus_power": 3, "bonus_bombs": 3},
+        "Редкая": {"base_xp": 150, "base_crusade": 4, "bonus_crusade": 8, "bonus_intel": 28, "bonus_power": 4, "bonus_bombs": 4},
+    },
+    "4 ч": {
+        "Обычная": {"base_xp": 10, "base_crusade": 1, "bonus_crusade": 1, "bonus_intel": 7, "bonus_power": 1, "bonus_bombs": 1},
+        "Необычная": {"base_xp": 30, "base_crusade": 2, "bonus_crusade": 2, "bonus_intel": 14, "bonus_power": 2, "bonus_bombs": 2},
+    },
+}
+
+BONUS_TYPES = {
+    "Без бонуса": None,
+    "Разведданные": "bonus_intel",
+    "Силы": "bonus_power",
+    "Боеприпасы": "bonus_bombs",
+}
